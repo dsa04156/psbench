@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: psbench-kafka-publisher, namespace: psbench }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: psbench-kafka-publisher } }
+  template:
+    metadata: { labels: { app: psbench-kafka-publisher } }
+    spec:
+      containers:
+      - name: pub
+        image: ghcr.io/dsa04156/psbench/psbench-kafka-pub:v0.1.0
+        env: [{ name: KAFKA_BOOTSTRAP, value: "kafka.psbench.svc.cluster.local:9092" }, { name: KAFKA_TOPIC_ID, value: "1" }]
+        args: ["-topic=1","-qps=100000","-payload=512"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: psbench-kafka-subscriber, namespace: psbench }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: psbench-kafka-subscriber, role: sub } }
+  template:
+    metadata: { labels: { app: psbench-kafka-subscriber, role: sub } }
+    spec:
+      containers:
+      - name: sub
+        image: ghcr.io/dsa04156/psbench/psbench-kafka-sub:v0.1.0
+        env:
+        - { name: KAFKA_BOOTSTRAP, value: "kafka.psbench.svc.cluster.local:9092" }
+        - { name: KAFKA_TOPIC_ID, value: "1" }
+        # 그룹은 Pod별 유니크 값(컨테이너에서 자동 생성) → 모든 구독자가 전체 메시지 수신
+

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: psbench-mqtt-publisher, namespace: psbench }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: psbench-mqtt-publisher } }
+  template:
+    metadata: { labels: { app: psbench-mqtt-publisher } }
+    spec:
+      containers:
+      - name: pub
+        image: ghcr.io/dsa04156/psbench/psbench-mqtt-pub:v0.1.0
+        env: [{ name: MQTT_BROKER, value: "tcp://mosquitto.psbench.svc.cluster.local:1883" }]
+        args: ["-topic=1","-qps=100000","-payload=512"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: psbench-mqtt-subscriber, namespace: psbench }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: psbench-mqtt-subscriber, role: sub } }
+  template:
+    metadata: { labels: { app: psbench-mqtt-subscriber, role: sub } }
+    spec:
+      containers:
+      - name: sub
+        image: ghcr.io/dsa04156/psbench/psbench-mqtt-sub:v0.1.0
+        env:
+        - { name: MQTT_BROKER, value: "tcp://mosquitto.psbench.svc.cluster.local:1883" }
+        - { name: MQTT_TOPIC_ID, value: "1" }
+      

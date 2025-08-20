@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psbench-controller
+  namespace: psbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: psbench-controller }
+  template:
+    metadata:
+      labels: { app: psbench-controller }
+    spec:
+      serviceAccountName: psbench
+      containers:
+      - name: controller
+        image: ghcr.io/dsa04156/psbench/psbench-controller:v0.1.0
+        volumeMounts:
+        - name: bpffs
+          mountPath: /sys/fs/bpf
+      volumes:
+      - name: bpffs
+        hostPath: { path: /sys/fs/bpf }

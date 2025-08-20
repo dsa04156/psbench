@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psbench-publisher
+  namespace: psbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: psbench-publisher }
+  template:
+    metadata:
+      labels: { app: psbench-publisher }
+    spec:
+      containers:
+      - name: publisher
+        image: ghcr.io/dsa04156/psbench/psbench-publisher:v0.1.0
+        args: ["-topic=1","-qps=100000","-payload=512","-dst=$(NODE_IP):32000"]
+        env:
+        - name: NODE_IP
+          valueFrom:
+            fieldRef: { fieldPath: status.hostIP }

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psbench-subscriber
+  namespace: psbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: subscriber, ps: "true", psbenchtag: "sub" }
+  template:
+    metadata:
+      labels:
+        app: subscriber
+        ps: "true"
+        ps/topic: "1"   # 토픽 ID (u32)
+    spec:
+      nodeSelector: {}  # M 노드 배치 실험시 스케줄러/affinity로 분산
+      containers:
+      - name: subscriber
+        image: ghcr.io/dsa04156/psbench/psbench-subscriber:v0.1.0
+        env:
+        - name: PS_UDP_PORT
+          value: "31001"
+        ports:
+        - containerPort: 31001
+          protocol: UDP

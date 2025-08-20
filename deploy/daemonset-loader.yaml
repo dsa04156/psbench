@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: psbench-loader
+  namespace: psbench
+spec:
+  selector:
+    matchLabels: { app: psbench-loader }
+  template:
+    metadata:
+      labels: { app: psbench-loader }
+    spec:
+      serviceAccountName: psbench
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: loader
+        image: ghcr.io/dsa04156/psbench/psbench-loader:v0.1.0
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["BPF","NET_ADMIN","SYS_RESOURCE"]
+        env:
+        - name: PS_EGRESS_IF
+          value: "eth0"
+        - name: PS_LOCAL_ROUTE_IF
+          value: "cilium_host"
+        - name: PS_ATTACH_DEV
+          value: "eth0"
+        - name: PS_NODE_ID
+          valueFrom:
+            fieldRef: { fieldPath: spec.nodeName } # 실제는 이름→ID 매핑 필요. 간단히 0 기본값 사용 시 컨트롤러가 세팅.
+        volumeMounts:
+        - name: bpffs
+          mountPath: /sys/fs/bpf
+        - name: mod
+          mountPath: /usr/local/bin
+      volumes:
+      - name: bpffs
+        hostPath: { path: /sys/fs/bpf }
+      - name: mod
+        hostPath: { path: /opt/psbench } # tc_hier_pubsub_kern.o 제공 위치(노드에 배포)

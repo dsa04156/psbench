@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psbench-broker
+  namespace: psbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: psbench-broker }
+  template:
+    metadata:
+      labels: { app: psbench-broker }
+    spec:
+      containers:
+      - name: broker
+        image: ghcr.io/dsa04156/psbench/psbench-broker:v0.1.0
+        env:
+        - name: SUBS
+          value: "" # "10.0.0.101:31001,10.0.0.102:31001"
+        ports:
+        - containerPort: 32000/UDP
